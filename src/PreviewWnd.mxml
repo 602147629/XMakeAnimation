@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Panel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" horizontalCenter="34"
+		 verticalCenter="-33"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="760" height="512" initialize="initializeHandler(event)">
+	<fx:Script>
+		<![CDATA[
+			import com.DataManager;
+			import com.demo.core.animation.BitmapAnimation;
+			import com.demo.net.loader.StaticDataModel;
+			import com.utils.HashMap;
+			
+			import mx.core.UIComponent;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			private var _floor:UIComponent = new UIComponent();
+			private var ui:UIComponent = new UIComponent ;
+			private var _scene:UIComponent = new UIComponent();
+			private var _animation:BitmapAnimation;
+			private var _offsetList:XMLList;
+			private var effectAnimMap:HashMap = new HashMap();
+			private var _totalFrame:int;
+			private var _timer:Timer = new Timer(100);
+			private var _curFrame:int;
+			private var _pos:Point;
+			protected function initializeHandler(event:FlexEvent):void
+			{
+				this.addElement(_floor);
+				this.addElement(ui);
+				this.addElement(_scene);
+				_pos = new Point(this.width/5,this.height/2);
+				ui.x = _pos.x;
+				ui.y = _pos.y;
+				_floor.x = _pos.x;
+				_floor.y = _pos.y;
+				_scene.x =  _pos.x;
+				_scene.y = 	_pos.y;
+				_timer.addEventListener(TimerEvent.TIMER,onTimer);
+			}
+			
+			public function setAnimation(value:BitmapAnimation,frames:Array,offsetList:XMLList,effectMap:HashMap):void
+			{
+				while(ui.numChildren)
+				{
+					ui.removeChildAt(0);
+				}
+				_offsetList = offsetList;
+				var offset:XML;
+				_animation = value.clone();
+				_animation.resetFramesArr(frames);
+				for(var i:int=0;i<_animation.playFrames.length && i<offsetList.length();i++)
+				{
+					offset = offsetList[_animation.playFrames[i]]
+					_animation.frames[i].offsetX = offset.@x;
+					_animation.frames[i].offsetY = offset.@y;
+				}
+				_totalFrame = _animation.totalFrames;
+				var offsetL:XMLList;
+				var effectBaseXML:XML;
+				var effectOffset:XML;
+				var effectList:Array = effectMap.keys;
+				{
+					var anim:BitmapAnimation;
+					for each(var exml:XML in effectList)
+					{
+						anim = BitmapAnimation(effectMap.get(exml)).clone();
+						effectAnimMap.add(exml,anim);
+						_totalFrame = _totalFrame>(anim.totalFrames+int(exml.@frame)-1) ? _totalFrame : (anim.totalFrames+int(exml.@frame)-1);
+						
+						effectBaseXML = DataManager.getInstance().getEffectBaseXML(exml.@srcId);
+						offsetL = effectBaseXML.offset[0].action[0].offset;
+						for(var ef:int = 0;ef<anim.frames.length;ef++)
+						{
+							effectOffset = offsetL[anim.playFrames[ef]];
+							anim.frames[ef].offsetX = int(effectOffset.@x);
+							anim.frames[ef].offsetY = int(effectOffset.@y);
+						}
+						anim.renderBySelf = true;
+						if(String(exml.@layer) == "floor")
+						{
+							_floor.addChild(anim);
+						}
+						else
+						{
+							_scene.addChild(anim);
+						}
+						
+					}
+				}
+				_animation.renderBySelf = true;
+//				_animation.play();
+				ui.addChild(_animation);
+				_curFrame = 1;
+				play();
+			}
+			
+			private function play():void
+			{
+				_timer.start();
+			}
+			
+			protected function close_clickHandler(event:MouseEvent):void
+			{
+				_timer.stop();
+				_timer.removeEventListener(TimerEvent.TIMER,onTimer);
+				for(var i:int=0;i<_animation.frames.length;i++)
+				{
+					_animation.frames[i].offsetX = 0;
+					_animation.frames[i].offsetY = 0;
+				}
+				var anims:Array = effectAnimMap.values;
+				for each(var an:BitmapAnimation in anims)
+				{
+					for(i=0;i<an.frames.length;i++)
+					{
+						an.frames[i].offsetX = 0;
+						an.frames[i].offsetY = 0;
+					}
+				}
+				_animation =null;
+				while(ui.numChildren)
+				{
+					ui.removeChildAt(0);
+				}
+				while(_floor.numChildren)
+				{
+					_floor.removeChildAt(0);
+				}
+				while(_scene.numChildren)
+				{
+					_scene.removeChildAt(0);
+				}
+				PopUpManager.removePopUp(this);
+			}
+			
+			protected function onTimer(event:TimerEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(_curFrame>_totalFrame)
+				{
+					_curFrame = 1;
+				}
+				if(_animation.totalFrames>=_curFrame)
+				{
+					_animation.gotoAndStop(_curFrame);
+				}
+				var effectFrames:Array = effectAnimMap.keys;
+				var anim:BitmapAnimation ; 
+				for each(var frame:XML in effectFrames)
+				{
+					anim = effectAnimMap.get(frame) as BitmapAnimation;
+					if(int(frame.@frame)<=_curFrame && anim.totalFrames >= _curFrame-int(frame.@frame)+1)
+					{
+						anim.gotoAndStop(_curFrame-int(frame.@frame)+1);
+					}
+				}
+				_curFrame ++;
+			}
+			
+		]]>
+	</fx:Script>
+	<s:Button id="close" x="700" y="-24" width="48" label="关闭" click="close_clickHandler(event)"/>
+</s:Panel>

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Panel xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 width="400" height="380" title="选择项目路径">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.demo.define.Config;
+			
+			import mx.managers.PopUpManager;
+			private var file:File=new File();
+			private var fileArr:Array = [];
+			private var _app:AnimationEditNew;
+			
+			public function setParent(viewP:AnimationEditNew):void
+			{
+				_app = viewP;
+			}
+			
+			protected function onChoosePath(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				file.addEventListener(Event.SELECT,selectResource);
+				file.browseForDirectory("选择项目路径");
+			}
+			
+			protected function onCreatePath(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				createFile(roleSwfPath);
+				createFile(roleXmlPath);
+				createFile(enemySwfPath);
+				createFile(enemyXmlPath);
+				createFile(effectSwfPath);
+				createFile(effectXmlPath);
+				createFile(npcSwfPath);
+				createFile(npcXmlPath);
+				
+				var configXML:XML = new XML("<config></config>");
+				var pathXML:XML = new XML("<path></path>");
+				pathXML.@projectPath = this.projectPathLabel.text;
+				configXML.appendChild(pathXML);
+				
+				var cf:File = new File(File.applicationDirectory.nativePath+"/AnimateEditConfig.xml");
+				var fileStream:FileStream = new FileStream();
+				fileStream.open(cf,FileMode.WRITE);
+				fileStream.writeUTFBytes(configXML.toXMLString());
+				fileStream.close();
+				
+				Config.projectPath = this.projectPathLabel.text;
+				
+				_app.initProjectPath();
+				_app = null;
+				PopUpManager.removePopUp(this);
+			}
+			
+			private function createFile(filePathlabel:Label):void
+			{
+				if(filePathlabel.text !="")
+				{
+					var file:File = new File(filePathlabel.text);
+					file.createDirectory();
+				}
+			}
+			
+			protected function selectResource(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				fileArr = [];
+				var f:File = event.currentTarget as File;
+				this.projectPathLabel.text = f.url;
+				this.roleSwfPath.text = f.url + "/swf/role";
+				this.roleXmlPath.text = f.url + "/xml/role";
+				
+				this.enemySwfPath.text = f.url + "/swf/monster";
+				this.enemyXmlPath.text = f.url + "/xml/monster";
+				
+				this.effectSwfPath.text = f.url + "/swf/effect";
+				this.effectXmlPath.text = f.url + "/xml/effect";
+				
+				this.npcSwfPath.text = f.url + "/swf/npc";
+				this.npcXmlPath.text = f.url + "/xml/npc";
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<s:HGroup width="393" height="37" verticalAlign="middle">
+		<s:Label id="projectPathLabel" y="9" width="294" height="20" text="请选择项目路径"
+				 verticalAlign="middle"/>
+		<s:Button id="chooseBtn" label="选择" click="onChoosePath(event)"/>
+	</s:HGroup>
+	<s:Label text="项目相关目录结构："/>
+	<s:Label width="100" backgroundColor="#E4DADA" text="swf资源路径："/>
+	<s:Label id="roleSwfPath" width="388" backgroundColor="#E4DADA"/>
+	<s:Label id="enemySwfPath" width="388" backgroundColor="#E4DADA"/>
+	<s:Label id="effectSwfPath" width="388" backgroundColor="#E4DADA"/>
+	<s:Label id="npcSwfPath" width="388" backgroundColor="#E4DADA"/>
+	<s:Label width="100" backgroundColor="#BFCDC8" text="xml配置路径："/>
+	<s:Label id="roleXmlPath" width="388" backgroundColor="#BFCDC8"/>
+	<s:Label id="enemyXmlPath" width="388" backgroundColor="#BFCDC8"/>
+	<s:Label id="effectXmlPath" width="388" backgroundColor="#BFCDC8"/>
+	<s:Label id="npcXmlPath" width="388" backgroundColor="#BFCDC8"/>
+	<s:HGroup width="388" height="22" horizontalAlign="center" verticalAlign="middle">
+		<s:Button id="createBtn" label="确定" click="onCreatePath(event)"/>
+	</s:HGroup>
+</s:Panel>

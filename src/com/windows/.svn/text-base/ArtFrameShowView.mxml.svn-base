@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Panel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="300"
+		 creationComplete="initPanel(event)">
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.core.UIComponent;
+			import mx.events.FlexEvent;
+			private var _ui:UIComponent = new UIComponent();
+			private var _bmp:Bitmap;
+			private var _oP:Point;
+			protected function onClosePanel(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+			}
+			
+			public function setFrameBMP(bmpCls:Class):void
+			{
+				_bmp = new bmpCls() as Bitmap;
+				_ui.addChild(_bmp);
+				this.addElement(_ui);
+			}
+			
+			public function dispose():void
+			{
+				
+			}
+			
+			protected function initPanel(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.addEventListener(MouseEvent.MOUSE_DOWN,onMouseDown);
+				
+			}
+			
+			protected function onMouseDown(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.stage.addEventListener(MouseEvent.MOUSE_MOVE,onMouseMove);
+				this.stage.addEventListener(MouseEvent.MOUSE_UP,onMouseUp);
+				_oP = new Point(event.localX,event.localY);
+			}
+			
+			protected function onMouseMove(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.x = event.stageX  - _oP.x;
+				this.y = event.stageY - _oP.y;
+			}
+			
+			protected function onMouseUp(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.stage.removeEventListener(MouseEvent.MOUSE_MOVE,onMouseMove);
+				this.stage.removeEventListener(MouseEvent.MOUSE_UP,onMouseUp);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<s:Button x="318" y="-27" label="关闭" click="onClosePanel(event)"/>
+</s:Panel>

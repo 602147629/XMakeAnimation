@@ -1,0 +1,937 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="1200" height="750"
+		 creationComplete="creationCompleteHandler(event)">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.DataManager;
+			import com.demo.define.Config;
+			import com.utils.AnimationXMLReader;
+			import com.view.AnimationPanel;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.events.ListEvent;
+			import mx.managers.PopUpManager;
+			
+			import spark.effects.animation.Animation;
+			import spark.events.TextOperationEvent;
+			
+			private var _artFramePanel:ArtFrameShowView;
+			private var _artDomain:ApplicationDomain;
+			private var xmlReader:AnimationXMLReader;
+			private var _curActionID:String;
+			private var _curParamID:String;
+			private var _curEffectID:String;
+			private var _propertyConatiner:PropertyContainerView;
+			private const normPropertyNameArr:Array = ["loop","frames","delay","offsetFrame","slides","dx"];
+			private var curParamPropertyNameArr:Array = [];
+			private var animationP:AnimationPanel;
+			private var _resType:String;
+			
+			private var _curEffectXML:XML;
+			private var _curParamXML:XML;
+			private var _copyXML:XML;
+			public function setAnimationXML(xml:XML,fileUrl:String,resType:String):void
+			{
+				_copyXML = xml.copy();
+				xmlReader = new AnimationXMLReader(xml);
+				_resType = resType;
+				xmlPathLabel.text = fileUrl;
+				
+				resTree.labelField = "@label";
+				this.resTree.dataProvider = xmlReader.getActionTreeData();
+				initBaseData();
+				_propertyConatiner = new PropertyContainerView();
+				this.autoPropertyRect.addElement(_propertyConatiner);
+				this.roleGroup.visible = false;
+				this.effectLayerCheckBtn.visible = false;
+				this.effectGroup.visible = false;
+				animationP = new AnimationPanel(this);
+				animation.addElement(animationP);
+				
+			}
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				operateTypeGroup.selection = hitRadio;
+				giveUpAll.enabled = false;
+			}
+			
+			public function dispose():void
+			{
+				animationP.dispose();
+				animationP = null;
+				animation.removeAllElements();
+				_propertyConatiner.dispose();
+				_propertyConatiner = null;
+				autoPropertyRect.removeAllElements();
+				this.removeAllElements();
+			}
+			
+			public function onSave(event:MouseEvent = null):void
+			{
+				// TODO Auto-generated method stub
+				var saveFile:File = new File(xmlPathLabel.text);
+				var saveFileStream:FileStream = new FileStream();
+				saveFileStream.open(saveFile,FileMode.WRITE);
+				saveFileStream.writeUTFBytes(xmlReader.xmlString);
+				saveFileStream.close();
+				Alert.show("保存成功！");
+			}
+			
+			protected function onGiveUpAll(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				Alert.show("暂无此功能！");
+				return;
+				xmlReader = new AnimationXMLReader(_copyXML);
+				this.resTree.dataProvider = xmlReader.getActionTreeData();
+				initBaseData();
+			}
+			
+			private function initBaseData():void
+			{
+				this.animationID.text = xmlReader.getBaseDataProperty("charID");
+				this.areaWidth.text = xmlReader.getBaseDataProperty("halfW");
+				this.areaHeight.text = xmlReader.getBaseDataProperty("halfH");
+				this.walkSpeedX.text =  xmlReader.getBaseDataProperty("walkSpeedX");
+				this.walkSpeedY.text =  xmlReader.getBaseDataProperty("walkSpeedY");
+				this.runSpeedX.text =  xmlReader.getBaseDataProperty("runSpeedX");
+				this.runSpeedY.text =  xmlReader.getBaseDataProperty("runSpeedY");
+				this.attackFlyX.text =  xmlReader.getBaseDataProperty("airSpeedX");
+				this.attackFlyY.text =  xmlReader.getBaseDataProperty("airSpeedY");
+				
+			}
+			
+			protected function onAreaWidthChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				xmlReader.setBaseDataProperty("halfW",this.areaWidth.text);
+			}
+			
+			protected function onAreaHeightChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				xmlReader.setBaseDataProperty("halfH",this.areaHeight.text);
+			}
+			
+			protected function onWalkSpeedXChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				xmlReader.setBaseDataProperty("walkSpeedX",this.walkSpeedX.text);
+			}
+			
+			protected function onWalkSpeedYChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				xmlReader.setBaseDataProperty("walkSpeedY",this.walkSpeedY.text);
+			}
+			
+			protected function onRunSpeedXChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				xmlReader.setBaseDataProperty("runSpeedX",this.runSpeedX.text);
+			}
+			
+			protected function onRunSpeedYChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				xmlReader.setBaseDataProperty("runSpeedY",this.runSpeedY.text);
+			}
+			
+			protected function onAttackFlyXChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				xmlReader.setBaseDataProperty("airSpeedX",this.attackFlyX.text);
+			}
+			
+			protected function onAttackFlyYChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				xmlReader.setBaseDataProperty("airSpeedY",this.attackFlyY.text);
+			}
+			
+			
+			protected function onInsertEffect(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+			}
+			
+			protected function onSwapEffect(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+			}
+			
+			protected function onDeleteEffect(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+				
+			}
+			
+			protected function onChangeShowEffectState(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+			}
+			
+			protected function onChangeArtFrameSlider(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				
+			}
+			
+			protected function onAddArtFrameToAnimation(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+				
+			}
+			
+			protected function onFocusOutAnimationFrames(event:FocusEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.totalAnimationFrame.text = this.animationFrames.text.split(",").length.toString();
+			}
+			
+			protected function onFoucsInAnimationFrames(event:FocusEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.animationFrames.name = this.animationFrames.text;
+			}
+			
+			protected function onUpdateAnimationFrames(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var frames:Array = this.animationFrames.text.split(",");
+				this.animationP.updateAllFrames(frames);
+				var pxml:XML = xmlReader.getParamXML(_curActionID,_curParamID);
+				pxml.@frames =  this.animationFrames.text;
+				animationFrameSlider.maximum = frames.length;
+			}
+			
+			protected function onPlayAnimation(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(this.animationP.animation!=null)
+				{
+					var pw:PreviewWnd = new PreviewWnd();
+					pw.setAnimation(this.animationP.animation,this.animationFrames.text.split(","),xmlReader.getAnimationOffsetList(_curActionID,_curParamID),animationP.getAllEffect());
+					PopUpManager.addPopUp(pw,this,true);
+					PopUpManager.centerPopUp(pw);
+				}
+			}
+			
+			protected function onChangeCurAnimationFrame(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				updateFrame(int(this.curAnimationFrame.text));
+			}
+			
+			protected function onCurAnimationFrame(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				updateFrame(animationFrameSlider.value);
+			}
+			
+			protected function onPreArtFrameBtn(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+			}
+			
+			protected function onNextArtFrame(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+			
+			protected function onPreAnimationFrame(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(animationFrameSlider.value == animationFrameSlider.minimum)
+				{
+					return;
+				}
+				animationFrameSlider.value-=1;
+				if(animationFrameSlider.value == animationFrameSlider.minimum)
+				{
+					this.preAnimationFrameBtn.enabled = false;
+				}
+				this.nextAnimationFrame.enabled = true;
+				updateFrame(animationFrameSlider.value);
+			}
+			
+			protected function onNextAnimationFrame(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(animationFrameSlider.value == animationFrameSlider.maximum)
+				{
+					return;
+				}
+				animationFrameSlider.value+=1;
+				if(animationFrameSlider.value == animationFrameSlider.maximum)
+				{
+					this.nextAnimationFrame.enabled = false;
+				}
+				this.preAnimationFrameBtn.enabled = true;
+				updateFrame(animationFrameSlider.value);
+			}
+			
+			private function updateFrame(frameIndex:int):void
+			{
+				animationP.gotoStop(frameIndex);
+				
+			}
+			
+			protected function onChangeAutoMirroState(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(_curEffectXML)
+				{
+					_curEffectXML.@withFlip = autoMirroCheckBtn.selected ? "1" : "0";
+				}
+			}
+			
+			protected function onChangeEffectLayerState(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(_curEffectXML)
+				{
+					_curEffectXML.@layer = effectLayerCheckBtn.selected ? "floor" : "scene";
+				}
+			}
+			
+			protected function onChangeLoopState(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(_curEffectXML!=null)
+				{
+					_curEffectXML.@loop = loopCheckBtn.selected ? "1" : "0";
+				}
+				else if(_curParamXML!= null)
+				{
+					_curParamXML.@loop = loopCheckBtn.selected ? "1" : "0";
+				}
+			}
+			
+			protected function onFirstSetFrameChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(_curParamXML)
+				{
+					_curParamXML.@offsetFrame = firstSetFrameMoveInput.text;
+				}
+			}
+			
+			protected function onFrameMoveListInputChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(_curParamXML)
+				{
+					_curParamXML.@slides = frameMoveListInput.text;
+					animationP.updateRoleSlides();
+				}
+			}
+			
+			protected function onAutoMoveSpeedInputChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(_curParamXML)
+				{
+					_curParamXML.@dx = autoMoveSpeedInput.text;
+				}
+			}
+			
+			protected function onEffectStartFrameChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(_curEffectXML)
+				{
+					_curEffectXML.@frame = effectStartFrame.text;
+				}
+			}
+			
+			protected function onEffectOffsetXChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(_curEffectXML)
+				{
+					_curEffectXML.@ox = effectOffsetX.text;
+				}
+			}
+			
+			protected function onEffectOffsetYChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(_curEffectXML)
+				{
+					_curEffectXML.@oy = effectOffsetY.text;
+				}
+			}
+			
+			protected function onEffectSpeedXChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(_curEffectXML)
+				{
+					_curEffectXML.@speedX = effectSpeedX.text;
+				}
+			}
+			
+			protected function onEffectSpeedYChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(_curEffectXML)
+				{
+					_curEffectXML.@speedY = effectSpeedX.text;
+				}
+			}
+			
+			protected function onEffectMoveTimeChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+			}
+			
+			protected function onEffectFrameTimeChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(_curEffectXML)
+				{
+					_curEffectXML.@moveTime = effectMoveTime.text;
+				}
+			}
+			
+			protected function onRoleFrameTimeChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(_curParamXML)
+				{
+					_curParamXML.@delay = roleFrameTime.text;
+				}	
+			}
+			
+			protected function onUpdateOffsetXML(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+			}
+			
+			protected function treeChanged(event:ListEvent):void
+			{
+				// TODO Auto-generated method stub
+				var grandParentXML:XML;
+				var parentXML:XML;
+				var nodeXML:XML = resTree.selectedItem as XML;
+				var nodeType:String = nodeXML.@type;
+				
+				var parentItem:Object = resTree.getParentItem(resTree.selectedItem);
+				if(nodeType == "action" && nodeXML.params.length()>0)
+				{
+					return;
+				}
+				_curActionID =null;
+				_curParamID =null;
+				_curEffectID = null;
+				
+				if(nodeType == "action")
+				{
+					_curActionID = nodeXML.@value;
+					_curParamID = "0";
+				}
+				else if(nodeType == "param")
+				{
+					_curParamID = nodeXML.@value;
+					parentXML = resTree.getParentItem(resTree.selectedItem) as XML;
+					_curActionID = parentXML.@value;
+				}
+				else
+				{
+					parentXML = resTree.getParentItem(resTree.selectedItem) as XML;
+					grandParentXML = resTree.getParentItem(parentXML) as XML;
+					if(grandParentXML == null)
+					{
+						_curActionID = parentXML.@value;
+						_curParamID = "0";
+					}
+					else
+					{
+						_curActionID = grandParentXML.@value;
+						_curParamID = parentXML.@value;
+					}
+					_curEffectID = nodeXML.@value;
+				}
+				updateEditView();
+			}
+			
+			private function updateEditView():void
+			{
+				
+				
+				if(_curEffectID!=null)
+				{
+					if(_curParamXML == null || String(_curParamXML.parent().@type) != _curActionID || _curParamID != String(_curParamXML.@id))
+					{
+						updateParam();
+						updateEffect();
+					}
+					else
+					{
+						updateEffect();
+					}
+				}
+				else
+				{
+					updateParam();
+				}
+				
+				initActionResource(_curActionID);
+				
+			}
+			
+			private function updateEffect():void
+			{
+				var hitXML:XML;
+				var effectXML:XML;
+				var frames:Array;
+				var delay:int;
+				
+				curParamPropertyNameArr = [];
+				this.curEffectID.text = _curEffectID;
+				effectXML = xmlReader.getEffectXML(_curActionID,_curParamID,_curEffectID);
+				this.loopCheckBtn.selected = effectXML.@loop.toString() == "1";
+				this.animationFrames.text = effectXML.@frames;
+				effectXML.@frames = this.animationFrames.text.replace(" ","");
+				frames = this.animationFrames.text.split(",");
+				this.totalAnimationFrame.text = frames.length.toString();
+				this.animationFrameSlider.maximum = int(this.totalAnimationFrame.text);
+				this.animationFrameSlider.minimum = 1;
+				this.curAnimationFrame.text = "1";
+				this.preAnimationFrameBtn.enabled = false;
+				this.animationFrameSlider.enabled = true;
+				this.nextAnimationFrame.enabled = true;
+				delay = int(effectXML.@delay)
+				this.effectFrameTime.text = effectXML.@delay;
+				this.effectMoveTime.text = effectXML.@moveTime;
+				this.autoMirroCheckBtn.selected = effectXML.@withFlip.toString() == "1";
+				this.effectSpeedX.text = effectXML.@speedX;
+				this.effectSpeedY.text = effectXML.@speedY;
+				this.effectLayerCheckBtn.selected =  effectXML.@layer.toString == "floor";
+				this.effectStartFrame.text = effectXML.@frame;
+				this.effectOffsetX.text = effectXML.@ox;
+				this.effectOffsetY.text = effectXML.@oy;
+				if(int(_curActionID)>=21)
+				{
+					hitXML = xmlReader.getEffectContainsHit(_curActionID,_curParamID,_curEffectID)
+					
+					if(hitXML!=null)
+					{
+						setHitData(hitXML);
+					}
+				}
+				this.roleGroup.visible = false;
+				this.effectLayerCheckBtn.visible = true;
+				this.effectGroup.visible = true;
+				animationP.setCurHitXML(hitXML,_curEffectID);
+				_curEffectXML = effectXML;
+				_curParamXML = null;
+			}
+			
+			private function updateParam():void
+			{
+				var hitXML:XML;
+				var paramXML:XML;
+				var frames:Array;
+				var delay:int;
+				
+				this.roleGroup.visible = true;
+				this.effectLayerCheckBtn.visible = false;
+				this.effectGroup.visible = false;
+				paramXML = xmlReader.getParamXML(_curActionID,_curParamID);
+				var attList:XMLList = paramXML.attributes();
+				var attName:String;
+				curParamPropertyNameArr = [];
+				_propertyConatiner.clearCells();
+				_propertyConatiner.setParamXML(paramXML);
+				for each(var attXML:XML in attList)
+				{
+					attName = attXML.name();
+					curParamPropertyNameArr.push(attName);
+					if(normPropertyNameArr.indexOf(attName) == -1)
+					{
+						_propertyConatiner.addProperty(attName,attXML.toString());
+					}
+				}
+				curParamPropertyNameArr.indexOf("loop")!=-1?(this.loopCheckBtn.selected = paramXML.@loop.toString == "1"):null ;
+				if(curParamPropertyNameArr.indexOf("frames")!=-1)
+				{
+					this.animationFrames.text =  paramXML.@frames;
+					paramXML.@frames =this.animationFrames.text = this.animationFrames.text.replace(" ","");
+					frames = this.animationFrames.text.split(",");
+					this.totalAnimationFrame.text = frames.length.toString();
+					this.animationFrameSlider.maximum = int(this.totalAnimationFrame.text);
+					this.animationFrameSlider.minimum = 1;
+					this.curAnimationFrame.text = "1";
+					this.preAnimationFrameBtn.enabled = false;
+					this.animationFrameSlider.enabled = true;
+					this.nextAnimationFrame.enabled = true;
+				}
+				else
+				{
+					this.animationFrameSlider.enabled = false;
+					this.preAnimationFrameBtn.enabled = false;
+					this.nextAnimationFrame.enabled = false;
+				}
+				curParamPropertyNameArr.indexOf("delay")!=-1?this.roleFrameTime.text =  paramXML.@delay:null;
+				curParamPropertyNameArr.indexOf("offsetFrame")!=-1?this.firstSetFrameMoveInput.text =  paramXML.@offsetFrame :null;
+				curParamPropertyNameArr.indexOf("slides")!=-1?this.frameMoveListInput.text =  paramXML.@slides :null;
+				curParamPropertyNameArr.indexOf("dx")!=-1?this.autoMoveSpeedInput.text = paramXML.@dx : null;
+				hitXML = xmlReader.getParamContainsHit(_curActionID,_curParamID);
+				delay = int(paramXML.@delay);
+				if(hitXML!=null)
+				{
+					setHitData(hitXML);
+				}
+				delay = delay>0?delay:33;
+				
+				var effectL:XMLList = xmlReader.getEffectList(_curActionID,_curParamID);
+				animationP.addEffect(effectL);
+				animationP.setCurHitXML(hitXML);
+				animationP.update(_resType,xmlReader.getBaseDataProperty("charID"),_curActionID,frames,xmlReader.getAnimationOffsetList(_curActionID,_curParamID),paramXML);
+				_curParamXML = paramXML;
+				_curEffectXML = null;
+			}
+			
+			private function setHitData(hitXML:XML):void
+			{
+				this.hitBack.text = hitXML.@dist;
+				this.hitHeight.text = hitXML.@high;
+				this.attackDepth.text = hitXML.@halfH;
+				this.pauseSelf.text = hitXML.@hitWait;
+				this.manyTimeCollisionCheckBtn.selected = hitXML.@modeName.toString() == "多次碰撞";
+			}
+			
+			public function createHitXML():void
+			{
+				// TODO Auto Generated method stub
+				var hitXML:XML = DataManager.getInstance().getHitXMLModel().copy();
+				setHitData(hitXML);
+				if(_curEffectXML!=null)
+				{
+					animationP.setCurHitXML(hitXML,_curEffectID);
+					_curEffectXML.appendChild(hitXML);
+				}
+				else if(_curParamXML!=null)
+				{
+					animationP.setCurHitXML(hitXML);
+					_curParamXML.appendChild(hitXML);
+				}
+			}
+			
+			public function removeHitXML():void
+			{
+				// TODO Auto Generated method stub
+				xmlReader.removeHitXML(_curActionID,_curParamID,_curEffectID);
+			}
+			
+			protected function onOperateTypeChange(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				animationP.updateType(int(operateTypeGroup.selectedValue));
+			}
+			
+			protected function addJudge(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				animationP.addJudgeBrush();
+			}
+			
+			protected function removeJudge(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				animationP.removeJudgeBrush();
+			}
+			
+			protected function judgeRectXChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				animationP.updateJudgeBrush(int(judgeRectX.text),int(judgeRectY.text),int(judgeRectWidth.text),int(judgeRectHeight.text));
+			}
+			
+			protected function judgeRectYChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				animationP.updateJudgeBrush(int(judgeRectX.text),int(judgeRectY.text),int(judgeRectWidth.text),int(judgeRectHeight.text));
+			}
+			
+			protected function judgeRectWidthChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				animationP.updateJudgeBrush(int(judgeRectX.text),int(judgeRectY.text),int(judgeRectWidth.text),int(judgeRectHeight.text));
+			}
+			
+			protected function judgeRectHeightChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				animationP.updateJudgeBrush(int(judgeRectX.text),int(judgeRectY.text),int(judgeRectWidth.text),int(judgeRectHeight.text));
+			}
+			
+			public function updateJudgeBrush(rectStr:String):void
+			{
+				// TODO Auto Generated method stub
+				var strArr:Array = rectStr.split(",");
+				judgeRectX.text = strArr[0];
+				judgeRectY.text = strArr[1];
+				judgeRectWidth.text = strArr[2];
+				judgeRectHeight.text = strArr[3];
+			}
+			
+			protected function onHitBackChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				animationP.updateHitParams(hitBack.text,hitHeight.text,attackDepth.text,pauseSelf.text,this.manyTimeCollisionCheckBtn.selected);
+			}
+			
+			protected function onHitHeightChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				animationP.updateHitParams(hitBack.text,hitHeight.text,attackDepth.text,pauseSelf.text,this.manyTimeCollisionCheckBtn.selected);
+			}
+			
+			protected function onAttackDepthChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				animationP.updateHitParams(hitBack.text,hitHeight.text,attackDepth.text,pauseSelf.text,this.manyTimeCollisionCheckBtn.selected);
+			}
+			
+			protected function onPauseSelfChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				animationP.updateHitParams(hitBack.text,hitHeight.text,attackDepth.text,pauseSelf.text,this.manyTimeCollisionCheckBtn.selected);
+			}
+			
+			protected function onCopyPreJudge(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				animationP.copyPreJudge();
+			}
+			
+			protected function onToBeforeJudge(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				animationP.toBeforeJudge();
+			}
+			
+			protected function noToNextJudge(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				animationP.toNextJudge();
+			}
+			
+			protected function onShowArtFrame(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(_artFramePanel == null)
+				{
+					showArtFrameBtn.label = "显示资源图片"
+					_artFramePanel = new ArtFrameShowView();
+					PopUpManager.addPopUp(_artFramePanel,this);
+				}
+				else
+				{
+					showArtFrameBtn.label = "隐藏资源图片"
+					PopUpManager.removePopUp(_artFramePanel);
+					_artFramePanel.dispose();
+					_artFramePanel = null;
+				}
+			}
+			
+			private function initActionResource(_curActionID:String):void
+			{
+				// TODO Auto Generated method stub
+				_artDomain = null;
+				var fileUrl:String = Config.swfPath + _resType +"/" + this.animationID.text +"/" + _curActionID + ".swf";
+				var loader:Loader = new Loader();
+				loader.contentLoaderInfo.addEventListener(Event.COMPLETE,onLoadComplete);
+				loader.load(new URLRequest(fileUrl));
+			}
+			
+			protected function onLoadComplete(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				_artDomain = LoaderInfo(event.target).applicationDomain;
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<s:RadioButtonGroup id="operateTypeGroup" itemClick="onOperateTypeChange(event)" />
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<s:Label id="xmlPathLabel" x="10" y="10" width="179" height="49" backgroundColor="#EDECEC"
+			 text="配置文件路径"/>
+	<s:Label x="10" y="67" text="ID："/>
+	<s:Label id="animationID" x="42" y="67" width="147" backgroundColor="#E6E6E6" text="10001"/>
+	<mx:Tree id="resTree" x="10" y="139" width="179" height="567" change="treeChanged(event)"></mx:Tree>
+	<s:VGroup x="200" y="8" width="664" height="191">
+		<s:HGroup width="655" height="29" verticalAlign="middle">
+			<s:Label text="总帧数："/>
+			<s:Label id="artTotalFrame" width="27" text="100"/>
+			<s:Label text="当前帧："/>
+			<s:TextInput id="curArtFrame" width="52" text="{artFrameSlider.value}"/>
+			<s:Button id="preArtFrameBtn" width="56" label="上一帧" click="onPreArtFrameBtn(event)"/>
+			<s:HSlider id="artFrameSlider" width="170" change="onChangeArtFrameSlider(event)"/>
+			<s:Button id="nextArtFrameBtn" width="63" label="下一帧" click="onNextArtFrame(event)"/>
+			<s:Button id="addFrameToAnimationBtn" width="48" label="添加" click="onAddArtFrameToAnimation(event)"/>
+			<s:Button id="showArtFrameBtn" label="显示资源图片" click="onShowArtFrame(event)"/>
+		</s:HGroup>
+		<s:HGroup width="654" height="26" verticalAlign="middle">
+			<s:CheckBox id="loopCheckBtn" label="循环" click="onChangeLoopState(event)"/>
+			<s:Label text="动画"/>
+			<s:TextInput id="animationFrames" width="348" focusOut="onFocusOutAnimationFrames(event)" focusIn="onFoucsInAnimationFrames(event)"  restrict="0-9,"/>
+			<s:Label id="totalAnimationFrame" text="100"/>
+			<s:Button id="updateAnimationFrames" width="76" label="更新动画"
+					  click="onUpdateAnimationFrames(event)"/>
+			<s:CheckBox id="effectLayerCheckBtn" label="地面层特效" click="onChangeEffectLayerState(event)"/>
+		</s:HGroup>
+		<s:HGroup width="658" height="24" verticalAlign="middle">
+			<s:Button id="preAnimationFrameBtn" width="63" label="上一帧" click="onPreAnimationFrame(event)"/>
+			<s:HSlider id="animationFrameSlider" width="170" change="onChangeCurAnimationFrame(event)" value="{int(curAnimationFrame.text)}"/>
+			<s:Button id="nextAnimationFrame" label="下一帧" click="onNextAnimationFrame(event)"/>
+			<s:TextInput id="curAnimationFrame" width="47" change="onCurAnimationFrame(event)" text="{animationFrameSlider.value.toString()}" restrict="0-9"/>
+			<s:Button id="playAnimationBtn" width="43" label="play" click="onPlayAnimation(event)"/>
+		</s:HGroup>
+		<s:HGroup id="effectGroup" width="653" height="23" gap="2" verticalAlign="middle">
+			<s:Label text="特效开始帧"/>
+			<s:TextInput id="effectStartFrame" width="35" change="onEffectStartFrameChange(event)"
+						 prompt="特效开始帧" text="23" restrict="0-9"/>
+			<s:Label text="位移X"/>
+			<s:TextInput id="effectOffsetX" width="35" change="onEffectOffsetXChange(event)"
+						 prompt="特效位移X" text="23" restrict="0-9"/>
+			<s:Label text="位移Y"/>
+			<s:TextInput id="effectOffsetY" width="35" change="onEffectOffsetYChange(event)"
+						 prompt="特效位移Y" text="23" restrict="0-9"/>
+			<s:Label text="速度X"/>
+			<s:TextInput id="effectSpeedX" width="35" change="onEffectSpeedXChange(event)"
+						 prompt="特效速度X" text="23" restrict="0-9"/>
+			<s:Label text="速度Y"/>
+			<s:TextInput id="effectSpeedY" width="35" change="onEffectSpeedYChange(event)"
+						 prompt="特效速度Y" text="23" restrict="0-9"/>
+			<s:Label text="移动时间"/>
+			<s:TextInput id="effectMoveTime" width="35" change="onEffectMoveTimeChange(event)"
+						 prompt="特效移动时间" text="23" restrict="0-9"/>
+			<s:Label text="特效帧时长"/>
+			<s:TextInput id="effectFrameTime" width="30" change="onEffectFrameTimeChange(event)" text="23" restrict="0-9"/>
+			<s:CheckBox id="autoMirroCheckBtn" label="自动镜像" click="onChangeAutoMirroState(event)"/>
+		</s:HGroup>
+		<s:VGroup id="roleGroup" width="658" height="74">
+			<s:HGroup width="661" height="27" verticalAlign="middle">
+				<s:Label text="手动位移开始帧"/>
+				<s:TextInput id="firstSetFrameMoveInput" width="24" change="onFirstSetFrameChange(event)" restrict="0-9"/>
+				<s:Label text="每帧位移"/>
+				<s:TextInput id="frameMoveListInput" width="332" change="onFrameMoveListInputChange(event)"
+							 prompt="输入手动位移开始帧后每帧的位移，有&quot;,&quot;分隔，如1,2,2" restrict="0-9,"/>
+				<s:Label text="自动位移速度"/>
+				<s:TextInput id="autoMoveSpeedInput" width="61" change="onAutoMoveSpeedInputChange(event)" restrict="0-9"/>
+			</s:HGroup>
+			<s:HGroup width="655" height="32" contentBackgroundColor="#EAEAEA" verticalAlign="middle">
+				<s:Label text="特效ID："/>
+				<s:Label id="curEffectID" width="40" text="20001"/>
+				<s:Button id="insertEffectBtn" label="插入特效" click="onInsertEffect(event)"/>
+				<s:Button id="swapEffect" label="替换特效" click="onSwapEffect(event)"/>
+				<s:Button id="deleteEffect" label="删除特效" click="onDeleteEffect(event)"/>
+				<s:CheckBox id="effectCheckBox" label="显示特效" click="onChangeShowEffectState(event)"
+							selected="true"/>
+				<s:Label text="角色动画每帧时长"/>
+				<s:TextInput id="roleFrameTime" width="30" change="onRoleFrameTimeChange(event)" text="23"/>
+			</s:HGroup>
+		</s:VGroup>
+	</s:VGroup>
+	<s:BorderContainer id="animation" x="205" y="232" width="660" height="460">
+	</s:BorderContainer>
+	<s:VGroup x="870" y="10" width="298" height="121" horizontalAlign="center" verticalAlign="middle">
+		<s:HGroup width="279" height="24" gap="20" verticalAlign="middle">
+			<s:Label text="占地W"/>
+			<s:TextInput id="areaWidth" width="35" change="onAreaWidthChange(event)" text="23"/>
+			<s:Label text="占地H"/>
+			<s:TextInput id="areaHeight" width="35" change="onAreaHeightChange(event)" text="23"/>
+		</s:HGroup>
+		<s:HGroup width="279" height="24" gap="20" verticalAlign="middle">
+			<s:Label text="走速X"/>
+			<s:TextInput id="walkSpeedX" width="35" change="onWalkSpeedXChange(event)" text="23"/>
+			<s:Label text="走速Y"/>
+			<s:TextInput id="walkSpeedY" width="35" change="onWalkSpeedYChange(event)" text="23"/>
+		</s:HGroup>
+		<s:HGroup width="279" height="24" gap="20" verticalAlign="middle">
+			<s:Label text="跑速X"/>
+			<s:TextInput id="runSpeedX" width="35" change="onRunSpeedXChange(event)" text="23"/>
+			<s:Label text="跑速Y"/>
+			<s:TextInput id="runSpeedY" width="35" change="onRunSpeedYChange(event)" text="23"/>
+		</s:HGroup>
+		<s:HGroup width="279" height="24" gap="20" verticalAlign="middle">
+			<s:Label text="击飞X"/>
+			<s:TextInput id="attackFlyX" width="35" change="onAttackFlyXChange(event)" text="23"/>
+			<s:Label text="击飞Y"/>
+			<s:TextInput id="attackFlyY" width="35" change="onAttackFlyYChange(event)" text="23"/>
+		</s:HGroup>
+	</s:VGroup>
+	<s:VGroup id="autoPropertyRect" x="870" y="139" width="298" height="268">
+	</s:VGroup>
+	<s:Button id="addAttackJudge" x="904" y="436" label="添加攻击判定" click="addJudge(event)"/>
+	<s:Button id="removeAttackJudge" x="1001" y="435" label="删除判定" click="removeJudge(event)"/>
+	<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+			 xmlns:s="library://ns.adobe.com/flex/spark"
+			 xmlns:mx="library://ns.adobe.com/flex/mx"
+			 x="898" y="458" width="260" height="200">
+		<s:Label id="judgeTypeLabel" x="19" y="10" chromeColor="#0B4CEF" color="#0649F3" text="攻击判定"/>
+		<s:CheckBox id="manyTimeCollisionCheckBtn" x="142" y="6" label="多次碰撞"/>
+		<s:VGroup x="10" y="40" width="240" height="160">
+			<s:VGroup id="attackPartDetermine" width="232" height="61">
+				<s:HGroup width="219" height="26" verticalAlign="middle">
+					<s:Label text="击退"/>
+					<s:TextInput id="hitBack" width="46" change="onHitBackChange(event)"/>
+					<s:Label text="高度"/>
+					<s:TextInput id="hitHeight" width="46" change="onHitHeightChange(event)"/>
+				</s:HGroup>
+				<s:HGroup width="221" height="26" verticalAlign="middle">
+					<s:Label text="纵深"/>
+					<s:TextInput id="attackDepth" width="46" change="onAttackDepthChange(event)"/>
+					<s:Label text="自身停顿"/>
+					<s:TextInput id="pauseSelf" width="46" change="onPauseSelfChange(event)"/>
+				</s:HGroup>
+			</s:VGroup>
+			<s:HGroup width="238" height="26" verticalAlign="middle">
+				<s:Label text="X"/>
+				<s:TextInput id="judgeRectX" width="46" change="judgeRectXChange(event)"/>
+				<s:Label text="Y"/>
+				<s:TextInput id="judgeRectY" width="46" change="judgeRectYChange(event)"/>
+			</s:HGroup>
+			<s:HGroup width="238" height="26" verticalAlign="middle">
+				<s:Label text="W"/>
+				<s:TextInput id="judgeRectWidth" width="46" change="judgeRectWidthChange(event)"/>
+				<s:Label text="H"/>
+				<s:TextInput id="judgeRectHeight" width="46" change="judgeRectHeightChange(event)"/>
+			</s:HGroup>
+			<s:HGroup width="237" height="25" verticalAlign="middle">
+				<s:Button id="beforJudgeBtn" width="56" label="上一个" click="onToBeforeJudge(event)"/>
+				<s:Button id="nextJudgeBtn" width="59" label="下一个" click="noToNextJudge(event)"/>
+				<s:Button id="copyPreJudgeRect" label="复制上一个判定" click="onCopyPreJudge(event)"/>
+			</s:HGroup>
+		</s:VGroup>
+	</s:Group>
+	<s:Button id="updateOffsetXMLBtn" x="4" y="111" label="更新偏移XML" click="onUpdateOffsetXML(event)"/>
+	<s:HGroup x="904" y="415" width="156" height="23">
+		<s:RadioButton id="hitRadio" label="碰撞检测" groupName="operateTypeGroup" value="{Config.BOX_TYPE_HIT}"/>
+	</s:HGroup>
+	<s:Button id="saveBtn" x="10" y="87" label="保存配置" click="onSave(event)"/>
+	<s:Button id="giveUpAll" x="88" y="87" label="还原到初始" click="onGiveUpAll(event)"/>
+</s:Group>

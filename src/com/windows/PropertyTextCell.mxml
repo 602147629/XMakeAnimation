@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009"
+		  xmlns:s="library://ns.adobe.com/flex/spark"
+		  xmlns:mx="library://ns.adobe.com/flex/mx"
+		  width="292" height="22" verticalAlign="middle">
+	<fx:Script>
+		<![CDATA[
+			import com.EditEvent;
+			import com.vo.PropertyTextCellVO;
+			
+			import spark.events.TextOperationEvent;
+			private var _vo:PropertyTextCellVO = new PropertyTextCellVO();
+			public function setProperty(pName:String,pValue:String):void
+			{
+				_vo.name = this.propertyName.text = pName;
+				_vo.value = this.propertyValue.text = pValue;
+			}
+			protected function onTextChange(event:TextOperationEvent):void
+			{
+				// TODO Auto-generated method stub
+				_vo.value = this.propertyValue.text;
+				var e:com.EditEvent = new EditEvent(EditEvent.PROPERTY_VALUE_CHANGE,true);
+				e.data = _vo;
+				this.dispatchEvent(e);
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<s:Label id="propertyName" width="63" text="标签"/>
+	<s:TextInput id="propertyValue" width="221" change="onTextChange(event)"/>
+</s:HGroup>

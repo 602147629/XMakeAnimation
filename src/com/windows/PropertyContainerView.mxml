@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx" width="296" height="266"
+		  creationComplete="initpanel(event)">
+	<fx:Script>
+		<![CDATA[
+			import com.EditEvent;
+			import com.vo.PropertyTextCellVO;
+			
+			import mx.events.FlexEvent;
+			private var _paramXML:XML;
+			public function clearCells():void
+			{
+				this.removeAllElements();
+			}
+			
+			public function addProperty(propertyName:String,propertyValue:String):void
+			{
+				var cell:PropertyTextCell = new PropertyTextCell();
+				cell.setProperty(propertyName, propertyValue);
+				this.addElement(cell);
+			}
+			
+			public function setParamXML(value:XML):void
+			{
+				_paramXML = value;
+			}
+			
+			protected function initpanel(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.addEventListener(EditEvent.PROPERTY_VALUE_CHANGE,onPropertyChange);
+			}
+			
+			protected function onPropertyChange(event:EditEvent):void
+			{
+				// TODO Auto-generated method stub
+				var vo:PropertyTextCellVO = event.data as PropertyTextCellVO;
+				_paramXML["@"+vo.name] = vo.value;
+				
+			}
+			
+			public function dispose():void
+			{
+				this.removeEventListener(EditEvent.PROPERTY_VALUE_CHANGE,onPropertyChange);
+				clearCells()
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+</s:VGroup>

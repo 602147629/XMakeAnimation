@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Panel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark"  initialize="init(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="440" height="260" 
+		 backgroundColor="#C2C6C7" horizontalCenter="34"
+		 verticalCenter="-33">
+	<fx:Script>
+		<![CDATA[
+			import flashx.textLayout.conversion.TextConverter;
+			
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			
+			import spark.components.Application;
+			import spark.effects.Animate;
+			
+			private var file:File=new File();
+			private var fs:FileStream=new FileStream();
+			private var path:String="";
+			private var tops:Array=[];
+			private var runtimes:Array=[];
+			private var index:uint=0;
+			private var xml:XML=null;
+			private var handle:uint=0;
+			private var activation:Boolean=false;
+			//			private var dataNames:Dictionary;
+			private var reNameFiles:String;
+			public static const COUNT:uint=5000;
+			/**
+			 * 初始化
+			 **/
+			protected function init(event:FlexEvent):void
+			{
+				browse.addEventListener(MouseEvent.CLICK,BrowseOnClick);
+				file.addEventListener(Event.SELECT,OnSelect);
+				ftitle.text=  File.applicationDirectory.nativePath +  "/resource/";
+				file.nativePath = File.applicationDirectory.nativePath  +  "/resource/";
+				path=file.nativePath;
+				ftitle.text=file.nativePath;
+			}
+			/**
+			 * 浏览目录
+			 **/
+			private function BrowseOnClick(e:MouseEvent):void
+			{
+				file.browseForDirectory("资源目录");
+			}
+			/**
+			 * 选择目录
+			 **/
+			private function OnSelect(e:Event):void
+			{
+				text.text="";
+				ftitle.text=file.nativePath;
+				path=file.nativePath;
+				text.textFlow=TextConverter.importToFlow("<font color='#FF0000'>准备就绪.</font>", TextConverter.TEXT_FIELD_HTML_FORMAT)
+			}
+			/**
+			 * 查找文件 
+			 **/
+			private function DoFind(f:File):void
+			{
+				var flist:Array=null;
+				var temp:Array=[];
+				var i:int=0;
+				if(f.name==".svn"|| f.name == "temp") return;//地图暂时没有另做处理
+				if(f.isDirectory){
+					flist=f.getDirectoryListing();
+					if(!activation){
+						activation=true;
+						for(i=0;i<flist.length;i++)
+						{
+							if(flist[i].isDirectory 
+								&& (flist[i].name=="top" || flist[i].name=="runtime"))
+							{
+								temp.push(flist[i]);
+							}
+						}
+						flist.splice(0);
+						flist=temp;
+					}
+					for(i=0;i<flist.length;i++)
+					{
+						if(flist[i].isDirectory)
+						{
+							DoFind(flist[i]);
+						}else
+						{
+							if(flist[i].nativePath.indexOf("top")!=-1)
+							{
+								tops.push(flist[i]);
+							}else 
+								if(flist[i].nativePath.indexOf("runtime")!=-1)
+								{
+									runtimes.push(flist[i]);
+								}
+						}
+						if(index==COUNT){
+							text.textFlow=TextConverter.importToFlow("<font color='#FF0000'>文件数超出限制当前上限为:"+COUNT+"</font>", TextConverter.TEXT_FIELD_HTML_FORMAT)
+							return;
+						}
+						index++;
+					}
+				}
+			}
+			/**
+			 * 创建xml文件
+			 **/
+			private function DoCreate(e:MouseEvent):void
+			{
+				xml=<root>
+					</root>;
+				tops.splice(0);
+				runtimes.splice(0);
+				index=0;
+				text.text="";
+				DoFind(file);
+				activation=true;
+				reNameFiles = "";
+				
+				handle=setInterval(traverse,1);
+			}
+			private function creatLookXml():void
+			{
+				var f:File=null;
+				f=new File(path + "/resConfig.xml");
+				fs.openAsync(f, FileMode.WRITE);
+				fs.writeUTFBytes(xml);
+				fs.close();
+				//赋值给 tree
+//				AnimationEdit.main.initTreeData(xml);
+				
+				activation = false;
+			}
+			private function traverse():void
+			{
+				var i:int=0;
+				var node:XML=null;
+				var name:String="";
+				var type:String="";
+				var fpath:String="";
+				var p:int=0;
+				var f:File=null;
+				
+				if(tops.length==0 && runtimes.length==0){
+					clearInterval(handle);
+					//生成可看文件
+					creatLookXml();
+					
+					if( reNameFiles.length == 0 )
+					{
+						text.textFlow=TextConverter.importToFlow("<font color='#FF0000'>导出config.xml成功共</font><font color='0x0080FF'>"+
+							index+"</font><font color='FF0000'>个文件</font>", TextConverter.TEXT_FIELD_HTML_FORMAT);
+					}
+					return;
+				}
+				if(tops.length>0 && f==null){
+					f=tops.shift();
+				}
+				if(runtimes.length>0 && f==null){
+					f=runtimes.shift();
+				}
+				p=f.name.lastIndexOf(".");
+				if(p!=-1){
+					name=f.name.slice(0,p).toLocaleLowerCase();
+//					type=f.name.slice(p+1).toLocaleLowerCase();
+					fpath=f.nativePath.replace(path,"").toLocaleLowerCase();
+					
+					var str:String = "";
+					var arr:Array = fpath.split('\\');
+					for(var n:int =0; n<arr.length; n++)
+					{
+						str += arr[n];
+						if(n != arr.length-1)
+							str += "/";
+					}
+					fpath = str;
+					//拼id 名字  用后3个字段 拼接
+					name = getId(arr);
+					node=<node id={name} type={keyArr[2]} path={fpath} />;
+					
+					//插入
+					var key:String = keyArr[0]+"_"+keyArr[1];
+					var tmpXml:XMLList = xml[key];
+					var keyNode:XML = tmpXml[0];
+					if(0 == tmpXml.length())
+					{
+						keyNode = new XML("<"+key+"></"+key+">");
+						xml.appendChild(keyNode);
+					}
+					keyNode.@label = key;
+					keyNode.appendChild(node);
+					
+					text.text=fpath;
+				}
+			}
+			private var keyArr:Array;
+			private function getId(arr:Array):String
+			{
+				keyArr = [];
+				var str:String = "";
+				for(var l:int = arr.length-3; l<arr.length; l++)
+				{
+					if(l != arr.length-1)
+					{
+						keyArr.push(arr[l]);
+						str += arr[l];
+						str += "_";
+					}else
+					{
+						var tmpStr:String = arr[l];
+						var strArr:Array = tmpStr.split(".");
+						str += strArr[0];
+						
+						keyArr.push(strArr[0]);
+					}
+				}
+				return str;
+			}
+			
+			protected function close_clickHandler(event:MouseEvent):void
+			{
+				this.visible = false;
+			}
+			
+		]]>
+	</fx:Script>
+		<s:TextInput left="10" top="7" right="198" enabled="false" id="ftitle"/>
+		<s:Button id="browse" label="浏览" right="120" top="8"/>
+		<s:TextArea top="62" right="10" bottom="10" left="10" id="text"/>
+		<s:Button label="生成" right="38" top="8" click="DoCreate(event);" id="submit"/>
+		<s:Button id="close" right="1" top="-30" width="35" height="25" label="X"
+				  click="close_clickHandler(event)" color="#FF0606" fontFamily="Arial" fontSize="20"
+				  fontWeight="bold"/>
+</s:Panel>

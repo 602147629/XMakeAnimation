@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Panel xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="300"
+		 title="新建XML"
+		 contentCreationComplete="onComplete(event)">
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			private var file:File=new File();
+			protected function onCreateXML(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+			}
+			
+			protected function onCancel(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+			}
+			
+			protected function onChoosePath(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				file.addEventListener(Event.SELECT,selectResource);
+				file.browseForDirectory("资源目录");
+			}
+			
+			protected function onAnimateTypeChange(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				
+			}
+			
+			protected function onComplete(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+			}
+			
+			protected function selectResource(event:Event):void
+			{
+				// TODO Auto-generated method stub
+				var f:File = event.currentTarget as File;
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<s:RadioButtonGroup id="animateTypeGroup" change="onAnimateTypeChange(event)" />
+		
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<s:HGroup width="396" height="31" textAlign="center" verticalAlign="middle">
+		<s:Label width="66" height="20" text="ID:" textAlign="center" verticalAlign="middle"/>
+		<s:TextInput id="idInput" width="320"/>
+	</s:HGroup>
+	<s:HGroup width="395" height="29" columnWidth="180" gap="20" paddingRight="0"
+			  requestedColumnCount="0" textAlign="center" variableColumnWidth="false"
+			  verticalAlign="middle">
+		<s:Label width="181" text="请选择对应的美术SWF文件路径"/>
+		<s:Button id="pathChooseBtn" width="167" label="选择" click="onChoosePath(event)"/>
+	</s:HGroup>
+	<s:Label id="choosePathLabel" width="397" height="18" backgroundColor="#DED8D8" text="标签"
+			 verticalAlign="middle"/>
+	<s:HGroup width="396" height="26" verticalAlign="middle">
+		<s:Label width="97" text="请选择动画类型" textAlign="center" verticalAlign="middle"/>
+		<s:HGroup y="3" width="285" height="20" gap="19" horizontalAlign="center" textAlign="right"
+				  verticalAlign="middle">
+			<s:RadioButton label="主角" groupName="animateTypeGroup" value="1" id="role"/>
+			<s:RadioButton label="敌方角色" groupName="animateTypeGroup" value="2" id="enemy"/>
+			<s:RadioButton label="特效" groupName="animateTypeGroup" value="3" id="effect"/>
+		</s:HGroup>
+	</s:HGroup>
+	<s:HGroup width="395" height="22" verticalAlign="middle">
+		<s:Label width="175" text="新建XML的文件路径为："/>
+		<s:Label width="200" color="#F40B0B" text="错误：已有同名文件"/>
+	</s:HGroup>
+	<s:Label id="xmlPathLabel" width="397" height="18" backgroundColor="#DED8D8" text="标签"
+			 verticalAlign="middle"/>
+	<s:HGroup width="395" height="22" verticalAlign="middle">
+		<s:Label width="175" text="SWF文件会被复制到："/>
+		<s:Label width="200" color="#F40B0B" text="警告：该文件夹已存在"/>
+	</s:HGroup>
+	<s:Label id="swfCopyPathLabel" width="397" height="18" backgroundColor="#DED8D8" text="标签"
+			 verticalAlign="middle"/>
+	<s:HGroup width="395" height="31" gap="20" horizontalAlign="center" verticalAlign="middle">
+		<s:Button id="createBtn" label="新建" click="onCreateXML(event)"/>
+		<s:Button id="cancelBtn" label="取消" click="onCancel(event)"/>
+	</s:HGroup>
+	
+</s:Panel>
